@@ -1,0 +1,289 @@
+/*
+colpick Color Picker / colpick.com
+*/
+
+/*Main container*/
+.colpick {
+	position: absolute !important;
+	width: 200px;
+	height: 140px;
+	overflow: hidden;
+	display: none;
+
+	/*Prevents selecting text when dragging the selectors*/
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+}
+/*Color selection box with gradients*/
+.colpick_color {
+	position: absolute !important;
+	left: 60px;
+	top: 7px;
+	width: 100px;
+	height: 100px;
+	overflow: hidden;
+	outline: 1px solid #aaa;
+	cursor: crosshair;
+}
+.colpick_color_overlay1 {
+	position: absolute !important;
+	left:0;
+	top:0;
+	width: 100px;
+	height: 100px;
+	-ms-filter: "progid:DXImageTransform.Microsoft.gradient(GradientType=1,startColorstr='#ffffff', endColorstr='#00ffffff')"; /* IE8 */
+	background: -moz-linear-gradient(left, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, right top, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(255,255,255,0))); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(left, rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(left, rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(left, rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%); /* IE10+ */
+	background: linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+	filter:  progid:DXImageTransform.Microsoft.gradient(GradientType=1,startColorstr='#ffffff', endColorstr='#00ffffff'); /* IE6 & IE7 */
+}
+.colpick_color_overlay2 {
+	position: absolute !important;
+	left:0;
+	top:0;
+	width: 100px;
+	height: 100px;
+	-ms-filter: "progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr='#00000000', endColorstr='#000000')"; /* IE8 */
+	background: -moz-linear-gradient(top, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,0)), color-stop(100%,rgba(0,0,0,1))); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top, rgba(0,0,0,0) 0%,rgba(0,0,0,1) 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top, rgba(0,0,0,0) 0%,rgba(0,0,0,1) 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top, rgba(0,0,0,0) 0%,rgba(0,0,0,1) 100%); /* IE10+ */
+	background: linear-gradient(to bottom, rgba(0,0,0,0) 0%,rgba(0,0,0,1) 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00000000', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
+}
+/*Circular color selector*/
+.colpick_selector_outer {
+	background:none;
+	position: absolute !important;
+	width: 11px;
+	height: 11px;
+	margin: -6px 0 0 -6px;
+	border: 1px solid black;
+	border-radius: 50%;
+}
+.colpick_selector_inner{
+	position: absolute !important;
+	width: 9px;
+	height: 9px;
+	border: 1px solid white;
+	border-radius: 50%;
+}
+/*Vertical hue bar*/
+.colpick_hue {
+	position: absolute !important;
+	top: 7px;
+	left: 170px;
+	width: 19px;
+	height: 100px;
+	cursor: n-resize;
+}
+/*Hue bar sliding indicator*/
+.colpick_hue_arrs {
+	position: absolute !important;
+	left: -8px;
+	width: 35px;
+	height: 7px;
+	margin: -7px 0 0 0;
+}
+.colpick_hue_larr {
+	position:absolute !important;
+	width: 0;
+	height: 0;
+	border-top: 6px solid transparent;
+	border-bottom: 6px solid transparent;
+	border-left: 7px solid #858585;
+}
+.colpick_hue_rarr {
+	position:absolute !important;
+	right:0;
+	width: 0;
+	height: 0;
+	border-top: 6px solid transparent;
+	border-bottom: 6px solid transparent;
+	border-right: 7px solid #858585;
+}
+/*New color box*/
+.colpick_new_color {
+	position: absolute !important;
+	left: 70px;
+	top: 114px;
+	width: 16px;
+	height: 16px;
+	background: #f00;
+}
+/*Current color box*/
+.colpick_current_color {
+	position: absolute !important;
+	display:none;
+	left: 277px;
+	top: 6px;
+	width: 60px;
+	height: 27px;
+	background: #f00;
+	border: 1px solid #8f8f8f;
+}
+/*Input field containers*/
+.colpick_field, .colpick_hex_field  {
+	position: absolute !important;
+	height: 16px;
+	width: 50px;
+	background: #fff;
+	overflow:hidden;
+	color:#b8b8b8;
+	font-size:11px;
+}
+.colpick_rgb_r {
+	top: 6px;
+	left:0;
+}
+.colpick_rgb_g {
+	top: 24px;
+	left:0;
+}
+.colpick_rgb_b {
+	top: 42px;
+	left:0;
+}
+.colpick_hsb_h{
+	top: 60px;
+	left:0;
+}
+.colpick_hsb_s{
+	top: 78px;
+	left:0;
+}
+.colpick_hsb_b{
+	top: 96px;
+	left:0;
+}
+.colpick_hex_field {
+	width: 68px;
+	left: 0;
+	top: 114px;
+}
+/*Text field container on focus*/
+.colpick_focus {
+}
+/*Field label container*/
+.colpick_field_letter {
+	position: absolute;
+	background:#e6e7e8;
+	width: 12px;
+	height: 20px;
+	line-height: 16px;
+	padding-left: 4px;
+	color:#777;
+	font-family: 'Courier';
+}
+/*Text inputs*/
+.colpick_field input, .colpick_hex_field input {
+	font-family: 'Courier';
+	position: absolute;
+	right: 11px;
+	margin: 0;
+	padding: 0;
+	height: 20px;
+	line-height: 16px;
+	background: transparent;
+	border: none;
+	font-size: 11px;
+	color: #555;
+	text-align: right;
+	outline: none;
+}
+.colpick_hex_field input {
+	right: 4px;
+}
+/*Field up/down arrows*/
+.colpick_field_arrs {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 9px;
+	height: 16px;
+	cursor: n-resize;
+}
+.colpick_field_uarr {
+	position: absolute;
+	top: 2px;
+	width: 0;
+	height: 0;
+	border-left: 4px solid transparent;
+	border-right: 4px solid transparent;
+	border-bottom: 4px solid #959595;
+}
+.colpick_field_darr {
+	position: absolute;
+	bottom:2px;
+	width: 0;
+	height: 0;
+	border-left: 4px solid transparent;
+	border-right: 4px solid transparent;
+	border-top: 4px solid #959595;
+}
+/*Submit/Select button*/
+.colpick_submit {
+	position: absolute;
+	left: 207px;
+	top: 149px;
+	width: 130px;
+	height: 22px;
+	line-height:22px;
+	background: #efefef;
+	text-align: center;
+	color: #555;
+	font-size: 12px;
+	font-weight:bold;
+	border: 1px solid #bdbdbd;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+}
+.colpick_submit:hover {
+	background:#f3f3f3;
+	border-color:#999;
+	cursor: pointer;
+}
+
+
+/* glue layout  */
+.colpick_glue  .colpick_submit, .colpick_glue .colpick_current_color {
+	display:none !important;
+}
+
+.colpick_glue .colpick_rgb_r {
+	top: 6px;
+	left:0;
+}
+.colpick_glue .colpick_rgb_g {
+	top: 24px;
+	left:0;
+}
+.colpick_glue .colpick_rgb_b {
+	top: 42px;
+	left:0;
+}
+.colpick_glue .colpick_hsb_h{
+	top: 60px;
+	left:0;
+}
+.colpick_glue .colpick_hsb_s{
+	top: 78px;
+	left:0;
+}
+.colpick_glue .colpick_hsb_b{
+	top: 96px;
+	left:0;
+}
+
+.colpick_glue .colpick_hex_field {
+	top: 114px;
+	left:0;
+}

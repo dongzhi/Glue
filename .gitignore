@@ -1,0 +1,6 @@
+build
+cache
+node-webkit
+src/node_modules
+
+.DS_Store

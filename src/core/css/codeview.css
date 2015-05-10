@@ -1,0 +1,65 @@
+html, body, section, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, a, code, em, img, q, small, strong, dd, dl, dt, li, ol, ul, fieldset, form, label, table, tbody, tr, th, td, input {
+  margin:0;
+  padding:0;
+  border: 0;
+}
+
+
+body{
+  font-size: 13px;
+  line-height: 120%;
+  font-family:'Courier';
+  color:#666;
+  background:#474949;
+}
+
+.target{
+  display:inline-block;
+  position:fixed;
+  bottom:0;
+  left:0;
+  padding:5px 10px;
+  background:#f7e4ae;
+  color:#744e1e;
+  width:100%;
+}
+
+#tabs{
+  width:100%;
+  background:#000;
+  padding-top:10px;
+}
+
+#tabs ul{
+  width:100%;
+  list-style:none;
+}
+
+#tabs li{
+  display:inline-block;
+  padding:5px 10px;
+  margin:0;
+  cursor:pointer;
+}
+
+#tabs li.js{
+  background:#474949;
+  color:#fff;
+}
+
+#tabs li.arduino{
+  background:#ccc;
+  opacity:0.5;
+  -webkit-transition: opacity .3s; /* Safari */
+  transition: opacity .3s;
+}
+
+#tabs li.arduino:hover{
+  opacity:1;
+}
+
+.wrapper{
+  display:block;
+  width:100%;
+  height:100%;
+}
