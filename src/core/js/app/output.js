@@ -352,7 +352,7 @@ var output = {
       {
         'name':'DATA',
         'type': 'in',
-        'pipein':['onoff','fx'],
+        'pipein':['onoff','fx','var'],
         'des': 'Data Pin',
         'x': 0,
         'y':30
@@ -636,7 +636,7 @@ var output = {
       {
         'name':'DRAW',
         'type': 'in',
-        'pipein':['arr'],
+        'pipein':['var'],
         'des': 'Matrix Data',
         'x': 0,
         'y':135

@@ -380,4 +380,5 @@ var modules = [
     { value: 'Array', data: 'menu_array' },
     { value: 'Solenoid', data: 'menu_solenoid' },
     { value: 'Sequence', data: 'menu_sequence'},
+    { value: 'Servo', data: 'menu_servo'},
 ];

@@ -40,10 +40,7 @@ var loadSettings = thisWindow.loadSettings;
 //require jquery from node results in sharing $
 //window.$ = window.jQuery = require('./js/lib/jquery');
 
-//DO NOT LOAD THEM AS AMD/NODE M
-// var board = require('./js/app/board');
-// var output = require('./js/app/output');
-// var fx = require('./js/app/fx');
+
 var scriptToLoad = [
   './js/app/board.js',
   './js/app/output.js',
@@ -67,7 +64,6 @@ process.__defineGetter__("stdin", function() {
 });
 
 var five = require("johnny-five");
-var pixel = require("./js/lib/pixel");
 var aboard = null;
 
 // serialport
@@ -80,62 +76,18 @@ var timerdb = {};
 var timeoutdb = {};
 var sensordb = {};
 
+//led matrix
+var outputdb = {};
 
 //server
-var express = require('express');
-var app = express();
-var server = require('http').createServer(app);
-var bodyParser = require('body-parser');
-var qr = require('qr-image');
-app.set('port', process.env.PORT || 8888);
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-	extented: true
-}));
+if(global.io){
+  global.io.close();
+  global.io = null;
+}
 
-app.get('/', function (req, res) {
-  res.sendfile('./core/phones.html');
-});
+var io = require('socket.io')(global.server);
+global.io = io;
 
-app.get('/phoneview.css',function(req ,res){
-  res.sendfile('./core/css/phoneview.css');
-});
-app.get('/jquery.js', function (req, res) {
-  res.sendfile('./core/js/lib/jquery.js');
-});
-app.get('/phoneview.js', function (req, res) {
-  res.sendfile('./core/js/app/phoneview.js');
-});
-app.get('/jquery.nouislider.min.js', function (req, res) {
-  res.sendfile('./core/js/lib/jquery.nouislider.min.js');
-});
-
-app.get('/jquery.nouislider.min.css', function (req, res) {
-  res.sendfile('./core/css/jquery.nouislider.min.css');
-});
-app.get('/glue.svg', function (req, res) {
-  res.sendfile('./core/images/glue.svg');
-});
-
-app.get('/qr/:id', function(req, res) {
-  var url = req.params.id;
-  if(url !== null){
-    //console.log(getLocalIPs());
-    url = 'http://'+getLocalIPs().en0.IPv4+':8888?id='+url;
-    var code = qr.svgObject(url, { type: 'svg' });
-    res.send(code);
-    //code.pipe(res);
-  }else{
-    res.send('wrong');
-  }
-});
-
-
-server.listen(app.get('port'), function(){
-  console.log("Express server listening on port " + app.get('port'));
-});
-
-var io = require('socket.io')(server);
 var phones = [];
 
 io.on('connection', function (socket) {
@@ -166,43 +118,6 @@ io.on('connection', function (socket) {
     socket.broadcast.emit('phone', phones);
   });
 });
-/////////////////////////////////
-/**
- * Collects information about the local IPv4/IPv6 addresses of
- * every network interface on the local computer.
- * Returns an object with the network interface name as the first-level key and
- * "IPv4" or "IPv6" as the second-level key.
- * For example you can use getLocalIPs().eth0.IPv6 to get the IPv6 address
- * (as string) of eth0
- */
-getLocalIPs = function () {
-    var addrInfo, ifaceDetails, _len;
-    var localIPInfo = {};
-    //Get the network interfaces
-    var networkInterfaces = require('os').networkInterfaces();
-    //Iterate over the network interfaces
-    for (var ifaceName in networkInterfaces) {
-        ifaceDetails = networkInterfaces[ifaceName];
-        //Iterate over all interface details
-        for (var _i = 0, _len = ifaceDetails.length; _i < _len; _i++) {
-            addrInfo = ifaceDetails[_i];
-            if (addrInfo.family === 'IPv4') {
-                //Extract the IPv4 address
-                if (!localIPInfo[ifaceName]) {
-                    localIPInfo[ifaceName] = {};
-                }
-                localIPInfo[ifaceName].IPv4 = addrInfo.address;
-            } else if (addrInfo.family === 'IPv6') {
-                //Extract the IPv6 address
-                if (!localIPInfo[ifaceName]) {
-                    localIPInfo[ifaceName] = {};
-                }
-                localIPInfo[ifaceName].IPv6 = addrInfo.address;
-            }
-        }
-    }
-    return localIPInfo;
-};
 
 ///////////////////////////////
 
@@ -393,78 +308,41 @@ $( document ).ready(function() {
 
     //saving events
     thisWindow.on('save', function(){
-      if(loadSettings.hasPathToOpen){
-        saveFile(tempFile,1);
-      }else{
-        //save as
-        var dialog = document.querySelector('#saveDialog');
-        var saveDialog = function(e){
-          if(this.value){
-               saveFile(this.value,1);
-               dialog.removeEventListener("change", saveDialog, false);
-               //close the window
-               thisWindow.loadSettings.saved = true;
-               thisWindow.close(true);
-               //open new window
-               global.glueApplication.openPaths({
-                    pathsToOpen: [this.value]
-               });
-            }
-        };
-
-        dialog.removeEventListener("change", saveDialog, false);
-        dialog.addEventListener("change", saveDialog, false);
-
-        dialog.click();
-      }
+      quitNew(0,1);
     });
 
     thisWindow.on('saveas', function(){
-        //save as
-        var dialog = document.querySelector('#saveDialog');
-        var saveDialog = function(e){
-          if(this.value){
-               saveFile(this.value,1);
-               dialog.removeEventListener("change", saveDialog, false);
-               //close the window
-               thisWindow.loadSettings.saved = true;
-               thisWindow.close(true);
-               //open new window
-               global.glueApplication.openPaths({
-                    pathsToOpen: [this.value]
-               });
-            }
-        };
+      var dialog = document.querySelector('#saveDialog');
+      var saveDialog = function(e){
+        if(this.value){
+             saveFile(this.value,1);
+             dialog.removeEventListener("change", saveDialog, false);
+             //close the window
+             thisWindow.loadSettings.saved = true;
+             thisWindow.close(true);
 
-        dialog.removeEventListener("change", saveDialog, false);
-        dialog.addEventListener("change", saveDialog, false);
+             //open new window
+             global.glueApplication.openPaths({
+                pathsToOpen: [this.value]
+             });
+          }
+      };
 
-        dialog.click();
+      dialog.removeEventListener("change", saveDialog, false);
+      dialog.addEventListener("change", saveDialog, false);
+
+      dialog.click();
+    });
+
+    thisWindow.on('newfile',function(){
+      if($('body .dialog_box').length === 0){
+        showConfirm('<strong>'+fileName+'</strong> has changes, would you like to save before closing?',1);
+      }
     });
 
     thisWindow.on('quitsave', function() {
-      if(loadSettings.hasPathToOpen){
-        saveFile(tempFile,1);
-        //close the window
-        thisWindow.loadSettings.saved = true;
-        thisWindow.close(true);
-      }else{
-        //save as
-        var dialog = document.querySelector('#saveDialog');
-        var saveDialog = function(e){
-          if(this.value){
-               saveFile(this.value,1);
-               dialog.removeEventListener("change", saveDialog, false);
-               //close the window
-               thisWindow.loadSettings.saved = true;
-               thisWindow.close(true);
-            }
-        };
-
-        dialog.removeEventListener("change", saveDialog, false);
-        dialog.addEventListener("change", saveDialog, false);
-
-        dialog.click();
+      if($('body .dialog_box').length === 0){
+        showConfirm('<strong>'+fileName+'</strong> has changes, would you like to save before closing?',0);
       }
     });
 
@@ -607,6 +485,7 @@ var parseDB = function(data){
           }else if( name === 'recorder'){
             //recorder
             bee.init("wave_"+j.id);
+            sandbox.init(j.id);
           }else if( name === 'colorpicker'){
             //colorpicker
             $('#'+j.id+' .colorpicker').colpick({
@@ -626,6 +505,41 @@ var parseDB = function(data){
     }
     sizes = d.sizes;
     updateUI();
+  }
+};
+
+var quitNew = function(quit,openNew){
+  if(loadSettings.hasPathToOpen){
+    saveFile(tempFile,1);
+    thisWindow.loadSettings.saved = true;
+    //close the window
+    if(quit){
+      thisWindow.close(true);
+    }
+  }else{
+    //save as
+    var dialog = document.querySelector('#saveDialog');
+    var saveDialog = function(e){
+      if(this.value){
+           saveFile(this.value,1);
+           dialog.removeEventListener("change", saveDialog, false);
+           //close the window
+           thisWindow.loadSettings.saved = true;
+           thisWindow.close(true);
+
+           //open new window
+           if(openNew){
+             global.glueApplication.openPaths({
+                  pathsToOpen: [this.value]
+             });
+           }
+        }
+    };
+
+    dialog.removeEventListener("change", saveDialog, false);
+    dialog.addEventListener("change", saveDialog, false);
+
+    dialog.click();
   }
 };
 
@@ -677,14 +591,15 @@ var saveFile = function(pathToSave, sync){
 /*---utility functions---*/
 var setSaved = function(data){
   return thisWindow.loadSettings.saved = data;
-}
+};
 
 
 var getPath = function(filePath){
   filePath = filePath.split('/');
   filePath.pop();
   return filePath.join('/');
-}
+};
+
 //click eidt
 function ClickEdit(e){
   if(e.preventDefault) e.preventDefault();
@@ -1247,6 +1162,7 @@ var activeSerialPanel = function(){
 
     for(var i=0;i<ports.length;i++){
       var port = ports[i];
+      //console.log(port);
       if(port.comName.indexOf('usbmodem') > -1){
         if(port.manufacturer.indexOf('Arduino') > -1 || port.manufacturer.indexOf('arduino') > -1){
           sPorts.unshift(port);
@@ -1256,6 +1172,8 @@ var activeSerialPanel = function(){
           $('#serialPanel ul.portsList').prepend('<li class="inactivePort" data-port="'+ port.comName+'">'+port.comName+'</li>');
         }
       }
+      // sPorts.push(port);
+      // $('#serialPanel ul.portsList').prepend('<li class="inactivePort" data-port="'+ port.comName+'">'+port.comName+'</li>');
     }
 
     if(!sPorts.length){
@@ -1263,7 +1181,7 @@ var activeSerialPanel = function(){
       notify("No board is detected. Please connect your board!");
     }
 
-    $('#serialPanel ul.portsList .inactivePort').hide();
+    //$('#serialPanel ul.portsList .inactivePort').hide();
     $('#serialPanel ul.portsList .choosedPort').show();
     $('#serialPanel ul.portsList').on('click','.choosedPort',function(){
         $(this).removeClass('choosedPort').addClass('activePort');
@@ -1330,11 +1248,39 @@ var checkBoard = function(){
 
 var bee = {
   bb:{},
+  random : [
+    40,40,40,40,40,40,40,40,25,20,
+    18,16,10,7,10,13,20,40,60,70,
+    40,40,40,40,40,40,40,40,40,40,
+    40,40,40,40,40,40,40,40,40,40,
+    40,40,40,40,40,40,40,40,40,40,
+    40,40,40,40,40,40,40,40,40,40,
+    40,40,40,40,40,40,40,40,40,40,
+    40,40,40,40,40,40,40,40,40,40,
+    40,40,40,40,40,40,40,40,15,30,
+    10,13,5,10,16,13,35,45,50,65,
+    43,42,40,40,40,40,40,40,40,40,
+    40,40,40,40,40,40,40,40,40,40,
+    40,40,40,40,40,40,40,40,35,30,
+    21,23,20,20,24,28,30,45,40,40,
+    40,40,40,40,40,40,40,40,40,40,
+    40,40,40,40,40,40,40,40,40,40,
+    40,40,40,40,40,30,34,44,35,20,
+    18,14,14,10,14,17,25,30,65,70,
+    45,40,40,40,40,40,40,40,40,40,
+    40,40,40,40,40,40,40,40,40,40,
+    40,40,40,40,40,40,40,40,25,10,
+    25,20,23,28,19,30,35,40,40,40,
+    40,40,40,40,40,40,40,40,40,40,
+    40,40,40,40,40,40,40,40,40,40,
+    40,40,40,40,40,40,40,40,40,40
+  ],
   init: function(id){
     bee.bb[id] = {};
     bee.bb[id].frame = 0;
+    bee.bb[id].playing = false;
     bee.bb[id].redline = null;
-    bee.bb[id].canvas = Raphael(document.getElementById(id),250, 64);
+    bee.bb[id].canvas = Raphael(document.getElementById(id),250, 80);
     bee.bb[id].data = [];
     bee.bb[id].timer = null;
   },
@@ -1342,7 +1288,7 @@ var bee = {
     bee.bb[id].frame = 0;
     bee.bb[id].timer = setInterval(function(){
       var str = 'M';
-      str += bee.bb[id].frame+' '+0+'L'+bee.bb[id].frame+' '+64;
+      str += bee.bb[id].frame+' '+0+'L'+bee.bb[id].frame+' '+80;
       bee.bb[id].canvas.clear();
       bee.draw(id);
       bee.bb[id].redline = bee.bb[id].canvas.path(str).attr({
@@ -1355,45 +1301,80 @@ var bee = {
         "stroke": "none",
       });
 
+      var new_id = id.split('_');
+      if(sandbox['recorder_'+new_id[2]]){
+        sandbox['recorder_'+new_id[2]].val = map(bee.bb[id].data[bee.bb[id].frame],0,80,0,1024);
+        sandbox.loop();
+      }
+
       if(bee.bb[id].frame >= (bee.bb[id].data.length - 1)){
         bee.stop(id);
       }else{
         bee.bb[id].frame++;
       }
-    }, 10);
+    }, 20);
   },
   play: function(id){
     bee.bb[id].frame = 0;
     bee.bb[id].data = [];
-    bee.bb[id].timer = setInterval(function(){
-      var random = 28*Math.sin(bee.bb[id].frame*0.1) + 30;
-
-      bee.bb[id].data.push(random);
-
-      var str = 'M';
-      str += bee.bb[id].frame+' '+0+'L'+bee.bb[id].frame+' '+64;
-      bee.bb[id].canvas.clear();
-      bee.draw(id);
-      bee.bb[id].redline = bee.bb[id].canvas.path(str).attr({
-        "fill": "none",
-        "stroke": "#ff0c06",
-        "stroke-width": 1,
-      });
-      bee.bb[id].canvas.circle(bee.bb[id].frame, parseInt(bee.bb[id].data[bee.bb[id].data.length-1]), 2).attr({
-        "fill": "#ff0c06",
-        "stroke": "none",
-      });
-
-      if(bee.bb[id].frame >= 251){
-        bee.stop(id);
-      }else{
-        bee.bb[id].frame++;
-      }
-
-    }, 10);
+    bee.bb[id].playing = true;
+    // bee.bb[id].timer = setInterval(function(){
+    //   //var random = 28*Math.sin(bee.bb[id].frame*0.1) + 30;
+    //
+    //   bee.bb[id].data.push(bee.random[bee.bb[id].frame]);
+    //
+    //   var str = 'M';
+    //   str += bee.bb[id].frame+' '+0+'L'+bee.bb[id].frame+' '+80;
+    //   bee.bb[id].canvas.clear();
+    //   bee.draw(id);
+    //   bee.bb[id].redline = bee.bb[id].canvas.path(str).attr({
+    //     "fill": "none",
+    //     "stroke": "#ff0c06",
+    //     "stroke-width": 1,
+    //   });
+    //   bee.bb[id].canvas.circle(bee.bb[id].frame, parseInt(bee.bb[id].data[bee.bb[id].data.length-1]), 2).attr({
+    //     "fill": "#ff0c06",
+    //     "stroke": "none",
+    //   });
+    //
+    //   if(bee.bb[id].frame >= 250){
+    //     bee.stop(id);
+    //   }else{
+    //     bee.bb[id].frame++;
+    //   }
+    //
+    // }, 10);
 
   },
+  rec: function(id,read){
+      //var random = 28*Math.sin(bee.bb[id].frame*0.1) + 30;
+    if(bee.bb[id].playing){
+
+
+      if(bee.bb[id].frame < 250 ){
+        read = map(read,0,1024,0.,80);
+        bee.bb[id].data.push(read);
+
+        var str = 'M';
+        str += bee.bb[id].frame+' '+0+'L'+bee.bb[id].frame+' '+80;
+        bee.bb[id].canvas.clear();
+        bee.draw(id);
+        bee.bb[id].redline = bee.bb[id].canvas.path(str).attr({
+          "fill": "none",
+          "stroke": "#ff0c06",
+          "stroke-width": 1,
+        });
+        bee.bb[id].canvas.circle(bee.bb[id].frame, parseInt(bee.bb[id].data[bee.bb[id].data.length-1]), 2).attr({
+          "fill": "#ff0c06",
+          "stroke": "none",
+        });
+
+        bee.bb[id].frame++;
+      }
+    }
+  },
   stop: function(id){
+    bee.bb[id].playing = false;
     clearInterval(bee.bb[id].timer);
     bee.bb[id].timer = null;
   },
@@ -1422,6 +1403,54 @@ var notify = function (str){
   setTimeout(function(){
     $('.notify').hide(300);
   }, 2000);
+}
+
+var showConfirm = function(str,open){
+  var confirm = '<div class="confirm dialog_box"><div class="dialog_info">'+str+'</div>';
+  confirm +='<div class="dbtns"><div class="nosave dbtn">Not Save</div><div class="cancel dbtn">Cancel</div><div class="save dbtn">Save</div></div>'
+  confirm +='</div>';
+  $('body').append(confirm);
+  $('body .dialog_box').animate({
+    top: "0px"
+  },300,function(){
+    //cancel
+    $('body').on('click','.cancel',function(e){
+      e.preventDefault();
+      $('body .dialog_box').animate({
+        top:"-400px"
+      },300,function(){
+        $('body .dialog_box').remove();
+      });
+    })
+
+    //No Save
+    $('body').on('click','.nosave',function(e){
+      e.preventDefault();
+      //clean cache
+      global.glueApplication.emit('application:del-cache');
+      thisWindow.close(true);
+
+      //open new window
+      if(open){
+        global.glueApplication.openPaths({
+             pathsToOpen: []
+        });
+      }
+    })
+
+    //Save As
+    $('body').on('click','.save',function(e){
+      e.preventDefault();
+      //save as
+      $('body .dialog_box').animate({
+        top:"-400px"
+      },300,function(){
+        $('body .dialog_box').remove();
+        quitNew(1,open);
+      });
+    })
+
+  });
 }
 
 /*    Elements  */
@@ -1966,6 +1995,7 @@ var menu_recorder = function(){
   ele.push(recorder);
   $('#stage').append(recorder);
   bee.init("wave_"+recorder.id);
+  sandbox.init(recorder.id);
 };
 
 /*   note   */
@@ -2012,3 +2042,8 @@ var menu_phoneledmatrix = function(){
   $('#stage').append(phoneledmatrix);
   sandbox.init(phoneledmatrix.id);
 };
+
+
+var map = function(value, low1, high1, low2, high2) {
+    return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
+}

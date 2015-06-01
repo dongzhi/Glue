@@ -86,7 +86,7 @@ module.exports = GlueWindow = (function() {
         }
       }
       loadSettings.initialPath = pathToOpen;
-      loadSettings.saved = true;
+      loadSettings.saved = false;
       this.browserWindow.loadSettings = loadSettings;
 
       //code view
@@ -124,27 +124,9 @@ module.exports = GlueWindow = (function() {
         return function() {
           //throw new Error(JSON.stringify(_this.));
           var saved = _this.browserWindow.loadSettings.saved;
-          var _hasPathToOpen = _this.browserWindow.loadSettings.hasPathToOpen;
 
           if(!saved){
-            //event.preventDefault();
-            //return _this.browserWindow.window.alert(_this);
-            if(_hasPathToOpen){
-               var filePath = path.normalize(_this.browserWindow.loadSettings.initialPath);
-               fileName = filePath.split('/').pop();
-            }else{
-               fileName = 'Untitled.glue';
-            }
-
-            var saveornot = _this.browserWindow.window.confirm(fileName+" has changes, would you like to save before closing?");
-
-            if(saveornot){
-                return _this.browserWindow.emit('quitsave');
-            }
-            //_this.browserWindow.window.alert(_this);
-            //
-            //return console.log("Saving");
-            //return global.glueApplication.emit('core:quit-save');
+            return _this.browserWindow.emit('quitsave');
           }
 
           //clean cache

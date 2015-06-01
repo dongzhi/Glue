@@ -45,6 +45,7 @@ module.exports = GlueApplication = (function() {
     //this.atomProtocolHandler = new AtomProtocolHandler(this.resourcePath, this.safeMode);
     //this.listenForArgumentsFromNewProcess();
     //this.setupJavaScriptArguments();
+    this.setupServer();
     this.handleEvents();
     this.openWithOptions(options); //exit point
   }
@@ -85,7 +86,8 @@ module.exports = GlueApplication = (function() {
     });
 
     this.on('application:new', function() {
-      return this.openPaths();
+      //return this.openPaths();
+      return this.focusedWindow().browserWindow.emit('newfile');
     });
 
     this.on('application:open', function() {
@@ -170,13 +172,18 @@ module.exports = GlueApplication = (function() {
         version : version
       });
     }else{
-      for (var _i = 0; _i < pathsToOpen.length; _i++) {
-        //global.appWin.window.alert(pathsToOpen[_i]);
-        openedWindow = new GlueWindow({
-          pathToOpen: pathsToOpen[_i],
+      // for (var _i = 0; _i < pathsToOpen.length; _i++) {
+      //   //global.appWin.window.alert(pathsToOpen[_i]);
+      //   openedWindow = new GlueWindow({
+      //     pathToOpen: pathsToOpen[_i],
+      //     version : version
+      //   });
+      // }
+      var _i = pathsToOpen.length;
+      openedWindow = new GlueWindow({
+          pathToOpen: pathsToOpen[_i-1],
           version : version
-        });
-      }
+      });
     }
 
     if (pidToKillWhenClosed != null) {
@@ -354,6 +361,88 @@ module.exports = GlueApplication = (function() {
       }
     }
     return delete this.pidsToOpenWindows[pid];
+  };
+
+  GlueApplication.prototype.setupServer = function(){
+    var express = require('express');
+    var app = express();
+    var server = require('http').createServer(app);
+    var bodyParser = require('body-parser');
+    var qr = require('qr-image');
+    app.set('port', process.env.PORT || 8888);
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({
+      extented: true
+    }));
+
+    app.get('/', function (req, res) {
+      res.sendfile('./core/phones.html');
+    });
+
+    app.get('/phoneview.css',function(req ,res){
+      res.sendfile('./core/css/phoneview.css');
+    });
+    app.get('/jquery.js', function (req, res) {
+      res.sendfile('./core/js/lib/jquery.js');
+    });
+    app.get('/phoneview.js', function (req, res) {
+      res.sendfile('./core/js/app/phoneview.js');
+    });
+    app.get('/jquery.nouislider.min.js', function (req, res) {
+      res.sendfile('./core/js/lib/jquery.nouislider.min.js');
+    });
+
+    app.get('/jquery.nouislider.min.css', function (req, res) {
+      res.sendfile('./core/css/jquery.nouislider.min.css');
+    });
+    app.get('/glue.svg', function (req, res) {
+      res.sendfile('./core/images/glue.svg');
+    });
+
+    app.get('/qr/:id', function(req, res) {
+      var url = req.params.id;
+      if(url !== null){
+        //console.log(getLocalIPs());
+        url = 'http://'+getLocalIPs()[0]+':8888?id='+url;
+        var code = qr.svgObject(url, { type: 'svg' });
+        res.send(code);
+        //code.pipe(res);
+      }else{
+        res.send('wrong');
+      }
+    });
+
+
+    server.listen(app.get('port'), function(){
+      console.log("Express server listening on port " + app.get('port'));
+    });
+
+    global.server = server;
+  }
+
+  /////////////////////////////////
+  /**
+   * Collects information about the local IPv4/IPv6 addresses of
+   * every network interface on the local computer.
+   * Returns an object with the network interface name as the first-level key and
+   * "IPv4" or "IPv6" as the second-level key.
+   * For example you can use getLocalIPs().eth0.IPv6 to get the IPv6 address
+   * (as string) of eth0
+   */
+  getLocalIPs = function () {
+      //Get the network interfaces
+      var interfaces = require('os').networkInterfaces();
+      var addresses = [];
+      for (var k in interfaces) {
+          for (var k2 in interfaces[k]) {
+              var address = interfaces[k][k2];
+              if (address.family === 'IPv4' && !address.internal) {
+                  addresses.push(address.address);
+              }
+          }
+      }
+
+      return addresses;
   };
 
   return GlueApplication;

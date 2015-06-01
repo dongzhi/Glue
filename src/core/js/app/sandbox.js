@@ -185,6 +185,8 @@ var sandbox = {
         case 'phoneledmatrix':
           return sandbox.phoneledmatrix(uid);
           break;
+        case 'recorder':
+          return sandbox.recorder(uid);
         case 'note':
           break;
       }
@@ -410,7 +412,7 @@ var sandbox = {
                 var sensor = new five.Sensor({
                   id: uid,
                   pin: "A"+num,
-                  freq: 100,
+                  freq: 20,
                 });
                 sensor.on("data", function() {
                   //console.log("haha");
@@ -3288,7 +3290,12 @@ var sandbox = {
       return sandbox[uid].val[0][2];
     };
     var draw =function(){
-      return sandbox[uid].val[1];
+      var shift = [];
+      for(var i = 0; i<8; i++){
+        shift.push(sandbox[uid].val[1][7-i]);
+        shift[i] = shift[i].join('');
+      }
+      return shift;
     };
     sandbox[uid] = {
       index: 0,
@@ -3386,11 +3393,17 @@ var sandbox = {
 
         if(num > -1){
           var j = function(){
-            var servo = new five.Servo({
-              pin: num,
-              range: data[0],
-              type: data[2]
-            });
+            var servo;
+            if(outputdb[uid]){
+              servo = outputdb[uid];
+            }else{
+              servo = new five.Servo({
+                pin: num,
+                range: data[0],
+                type: data[2]
+              });
+              outputdb[uid] = servo;
+            }
 
             servo.to(data[1]);
           }
@@ -3452,10 +3465,60 @@ var sandbox = {
   ledmatrix: function(uid){
     var vfx = function(data){
       if(typeof data === 'object' && data.length === 8){
+        var def = [
+          "00000000",
+          "00000000",
+          "00000000",
+          "00000000",
+          "00000000",
+          "00000000",
+          "00000000",
+          "00000000"
+        ];
         // data[0] = data[0] === null ? 50:data[0];
         // data[1] = data[1] === null ? 50:data[1];
         // data[2] = data[2] === null ? 250:data[2];
-        // data[3] = data[3] === null ? 1:data[3];
+        data[3] = data[3] === null ? 100:data[3];
+        data[7] = data[7] === null ? def:data[7];
+
+        var dat = -1, clk = -1, cs = -1;
+        for(var i in connections){
+          if(connections[i][0] === uid+'_DATA'){
+            dat = i.split('_').pop();
+            dat = parseInt(dat.split("PIN").pop());
+          }else if(connections[i][0] === uid+'_CLOCK'){
+            clk = i.split('_').pop();
+            clk = parseInt(clk.split("PIN").pop());
+          }else if(connections[i][0] === uid+'_CS'){
+            cs = i.split('_').pop();
+            cs = parseInt(cs.split("PIN").pop());
+          }
+        }
+
+        if(dat > -1 && clk > -1 && cs > -1){
+          var j = function(){
+            var matrix;
+            if(outputdb[uid]){
+              matrix = outputdb[uid];
+            }else{
+              matrix = new five.Led.Matrix({
+                pins: {
+                  data: dat,
+                  clock: clk,
+                  cs: cs
+                },
+                devices: 1
+              });
+              outputdb[uid] = matrix;
+            }
+
+            matrix.brightness(data[3]);
+            matrix.draw(data[7]);
+          }
+
+          return j;
+        }
+
       }
     };
     sandbox[uid] = {
@@ -3521,6 +3584,61 @@ var sandbox = {
         'type': 'in',
         'pfx': null,
       },
+    ];
+    for(var i in pins){
+      var pin = uid+'_'+pins[i].name;
+      var type = pins[i].type;
+      if(type === 'in'){
+        sandbox[uid].in.push(pin);
+      }else if(type === 'out'){
+        sandbox[uid].out.push(pin);
+      }
+      sandbox[pin] = pins[i].pfx;
+
+      //code
+      sandbox.def[pin] = [];
+      sandbox.def[pin][0] = "var "+pin+";";
+      sandbox.def[pin][1] = pin+"= null;";
+    }
+    //code
+    sandbox.def[uid] = [];
+    sandbox.def[uid][0] = "var "+uid+";";
+    sandbox.def[uid][1] = uid+'={ index: 0,fx:'+vfx+'};';
+    sandbox.update();
+  },
+  recorder: function(uid){
+    var rfx = function(data){
+      if(typeof data === 'object' && data !== null){
+        return sandbox[uid].val;
+      }
+    };
+    var vfx = function(data){
+      if(typeof data === 'object' && data !== null){
+        if(bee.bb['wave_'+uid].playing){
+          bee.rec('wave_'+uid,data[0]);
+        }
+        //console.log('uid-'+uid+':'+data[0]);
+      }
+    }
+    sandbox[uid] = {
+      index: 0,
+      src:0,
+      out:[],
+      in:[],
+      fx: vfx,
+      val: 0
+    };
+    var pins = [
+      {
+        'name':'IN',
+        'type': 'in',
+        'pfx': null,
+      },
+      {
+        'name':'OUT',
+        'type': 'out',
+        'pfx': rfx,
+      }
     ];
     for(var i in pins){
       var pin = uid+'_'+pins[i].name;
