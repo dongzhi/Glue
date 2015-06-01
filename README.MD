@@ -1,4 +1,7 @@
 ##Meet Glue
+
+![Glue](http://dongzhixia.com/glue/images/banner.svg)
+
 Glue is a flow-based visual programming environment that makes sketching in hardware easier for designers. 
 
 Glue offers an alternative way to create program by manipulating logics graphically. With visible flows and real-time feedback, beginners can learn, understand and create program intuitively. The smartphone integration allows beginners to set up flexible architectures and mimic connected experience easily. Glue also provides powerful ways to explore invisible behaviours across time and possibilities. 
@@ -6,7 +9,7 @@ Glue offers an alternative way to create program by manipulating logics graphica
 Visit [dongzhixia.com/glue](http://dongzhixia.com/glue/) for more information.
 
 ## Building
-Glue only supprots OS X 10.8+ now. Windows, Linux versions coming later.
+Glue is currently built using HTML&Javascript based on [NW.js](https://github.com/nwjs/nw.js) runtime and [johnny-five](https://github.com/rwaldron/johnny-five) framework. It only supprots OS X 10.8+ now. Windows, Linux versions coming later.
 
 ### Requirements
   * OS X 10.8 or later
