@@ -67,7 +67,7 @@ module.exports = GlueWindow = (function() {
   			"min_width": 400,
   			"position": "center",
   			"show": true,
-  			"toolbar": true,
+  			"toolbar": false,
   			"frame": true
         //"new-instance": true
         //then run as another nodejs instance no data share

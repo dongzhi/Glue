@@ -152,6 +152,9 @@ var sandbox = {
         case 'piezo':
           return sandbox.piezo(uid);
           break;
+        case 'knock':
+          return sandbox.knock(uid);
+          break;
         case 'solenoid':
           return sandbox.solenoid(uid);
           break;
@@ -403,6 +406,84 @@ var sandbox = {
     }
   },
   pot: function(uid){
+    var vfx = function(data){
+      if(data[0]!== null && typeof data[0] === 'object'){
+          var num = parseInt(data[0].pin);
+          if(data[0].isOn){
+            if(global.board.isReady){
+              if(!sensordb[uid]){
+                var sensor = new five.Sensor({
+                  id: uid,
+                  pin: "A"+num,
+                  freq: 20,
+                });
+                sensor.on("data", function() {
+                  //console.log("haha");
+                  sandbox[uid].val = this.raw;
+                  sandbox.loop();
+                });
+                sensordb[uid] = sensor;
+              }
+
+            }
+            return sandbox[uid].val;
+          }else{
+            if(typeof sensordb[uid] !== 'undefined' && sensordb[uid] !== null){
+              sensordb[uid].removeAllListeners("data");
+              sensordb[uid].io.removeAllListeners("analog-read-"+num);
+              sensordb[uid].io.reset();
+              delete sensordb[uid];
+              for(var i in global.board.register){
+                if(global.board.register[i].id === uid){
+                  global.board.register.splice(i,1);
+                }
+              }
+            }
+          }
+      }
+    };
+    sandbox[uid] = {
+      index: 0,
+      src: 0,
+      out:[],
+      in:[],
+      fx: vfx,
+      val: 0
+    };
+    var pins = [
+      {
+        'name':'IN',
+        'type': 'in',
+        'pfx': null,
+      },
+      {
+        'name':'DATA',
+        'type': 'out',
+        'pfx': vfx,
+      },
+    ];
+    for(var i in pins){
+      var pin = uid+'_'+pins[i].name;
+      var type = pins[i].type;
+      if(type === 'in'){
+        sandbox[uid].in.push(pin);
+      }else if(type === 'out'){
+        sandbox[uid].out.push(pin);
+      }
+      sandbox[pin] = pins[i].pfx;
+
+      //code
+      sandbox.def[pin] = [];
+      sandbox.def[pin][0] = "var "+pin+";";
+      sandbox.def[pin][1] = pin+"= null;";
+    }
+    //code
+    sandbox.def[uid] = [];
+    sandbox.def[uid][0] = "var "+uid+";";
+    sandbox.def[uid][1] = uid+'={ index: 0,fx:'+vfx+'};';
+    sandbox.update();
+  },
+  knock: function(uid){
     var vfx = function(data){
       if(data[0]!== null && typeof data[0] === 'object'){
           var num = parseInt(data[0].pin);

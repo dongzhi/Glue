@@ -1510,6 +1510,7 @@ var menu_knock = function(){
   var knock = new sensor.knock('knock_'+id,'sensor', cx, cy);
   ele.push(knock);
   $('#stage').append(knock);
+  sandbox.init(knock.id);
 };
 
 /*   Output   */

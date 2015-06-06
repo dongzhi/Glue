@@ -8,6 +8,11 @@ Glue offers an alternative way to create program by manipulating logics graphica
 
 Visit [dongzhixia.com/glue](http://dongzhixia.com/glue/) for more information.
 
+##Test Builds
+> **WARNING:** Glue is still in early lean development. There’s no stable release yet. But you are always welcome to try test builds and report bugs.
+
+- [Test Build v0.161.0](https://github.com/dongzhi/Glue/releases)
+
 ## Building
 Glue is currently built using HTML&Javascript based on [NW.js](https://github.com/nwjs/nw.js) runtime and [johnny-five](https://github.com/rwaldron/johnny-five) framework. It only supprots OS X 10.8+ now. Windows, Linux versions coming later.
 
